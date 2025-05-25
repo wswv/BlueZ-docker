@@ -3,7 +3,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
 ENV PUID=1000
-ENV PGID=29
+ENV PGID=1000
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -13,10 +13,21 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user and group
-RUN groupadd -g ${PGID} audio && \
-    useradd -u ${PUID} -g audio -m -s /bin/bash bluezuser && \
-    usermod -aG bluetooth bluezuser
+# Create audio and bluetooth groups, avoiding conflicts
+RUN if getent group ${PGID} > /dev/null; then \
+        groupmod -n audio $(getent group ${PGID} | cut -d: -f1); \
+    else \
+        groupadd -g ${PGID} audio; \
+    fi && \
+    groupadd -r bluetooth || true
+
+# Create non-root user
+RUN if getent passwd ${PUID} > /dev/null; then \
+        usermod -g audio -s /bin/bash $(getent passwd ${PUID} | cut -d: -f1); \
+    else \
+        useradd -u ${PUID} -g audio -m -s /bin/bash bluezuser; \
+    fi && \
+    usermod -aG bluetooth bluezuser || true
 
 # Create FIFO pipe directory and set permissions
 RUN mkdir -p /audio && \
