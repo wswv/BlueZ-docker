@@ -1,0 +1,19 @@
+Serivice:
+  bluez:
+    image: custom/bluez:arm64
+    container_name: bluez
+    volumes:
+      - /tmp/snapfifo_bluetooth:/audio/snapfifo_bluetooth
+      - ./bluez-config.sh:/bluez-config.sh
+    devices:
+      - /dev/snd:/dev/snd
+      - /dev/bus/usb:/dev/bus/usb # For Bluetooth USB dongle
+    cap_add:
+      - NET_ADMIN # For Bluetooth network operations
+    environment:
+      - PUID=1000
+      - PGID=29 # Replace with your host's audio group ID
+    networks:
+      macvlan_net:
+        ipv4_address: 192.168.1.104 # Static IP for bluez
+    restart: unless-stopped
