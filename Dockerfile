@@ -1,10 +1,9 @@
-FROM ubuntu:22.04
+FROM debian:bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
 ENV PUID=1000
-ENV PGID=29 
-#PGID=29 for audio:x:29
+ENV PGID=29
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
